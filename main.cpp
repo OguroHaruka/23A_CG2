@@ -803,46 +803,65 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDesc,
 		IID_PPV_ARGS(&graphicsPipelineState));
 	assert(SUCCEEDED(hr));
-
-	ID3D12Resource* vertexResourceSprite = CreateBufferResource(device, sizeof(VertexData) * 6);
-	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSprite{};
-	vertexBufferViewSprite.BufferLocation = vertexResourceSprite->GetGPUVirtualAddress();
-	vertexBufferViewSprite.SizeInBytes = sizeof(VertexData) * 6;
-	vertexBufferViewSprite.StrideInBytes = sizeof(VertexData);
-	//1枚目の三角形
-	VertexData* vertexDataSprite = nullptr;
-	vertexResourceSprite->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSprite));
-	vertexDataSprite[0].position = { 0.0f,360.0f,0.0f,1.0f };
-	vertexDataSprite[0].texcoord = { 0.0f,1.0f };
-	vertexDataSprite[1].position = { 0.0f,0.0f,0.0f,1.0f };
-	vertexDataSprite[1].texcoord = { 0.0f,0.0f };
-	vertexDataSprite[2].position = { 640.0f,360.0f,0.0f,1.0f };
-	vertexDataSprite[2].texcoord = { 1.0f,1.0f };
-	//2枚目の三角形
-	vertexDataSprite[3].position = { 0.0f,0.0f,0.0f,1.0f };
-	vertexDataSprite[3].texcoord = { 0.0f,0.0f };
-	vertexDataSprite[4].position = { 640.0f,0.0f,0.0f,1.0f };
-	vertexDataSprite[4].texcoord = { 1.0f,0.0f };
-	vertexDataSprite[5].position = { 640.0f,360.0f,0.0f,1.0f };
-	vertexDataSprite[5].texcoord = { 1.0f,1.0f };
-
-	ID3D12Resource* transformationMatrixResourceSprite = CreateBufferResource(device, sizeof(Matrix4x4));
-	Matrix4x4* transformationMatrixDataSprite = nullptr;
-	transformationMatrixResourceSprite->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSprite));
-	*transformationMatrixDataSprite = MakeIdentity4x4();
-
 	
-	
-	ID3D12Resource* vertexResource = CreateBufferResource(device,sizeof(VertexData)*6);
-	
-	assert(SUCCEEDED(hr));
+	const uint32_t ballVertex = 16 * 16 * 6;
 
-	
-
+	ID3D12Resource* vertexResource = CreateBufferResource(device,sizeof(VertexData)*ballVertex);
 	VertexData* vertexData = nullptr;
 	vertexResource->Map(0, nullptr,
 		reinterpret_cast<void**>(&vertexData));
-	//左下
+	const uint32_t kSubdivision = 12;
+	const uint32_t kNumSphereVerteces = kSubdivision * kSubdivision * 6;
+	const float pi = 3.14f;
+	const float kLonEvery = pi * 2.0f / float(kSubdivision);
+	const float kLatEvery = pi / float(kSubdivision);
+	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
+		float lat = pi / 2.0f + kLatEvery * latIndex;
+		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex) {
+			uint32_t startIndex = (latIndex * kSubdivision + lonIndex) * 6;
+			float lon = lonIndex * kLonEvery;
+			
+			//a
+			vertexData[startIndex].position.x = std::cos(lat) * std::cos(lon);
+			vertexData[startIndex].position.y = std::sin(lat);
+			vertexData[startIndex].position.z = std::cos(lat) * std::sin(lon);
+			vertexData[startIndex].position.w = 1.0f;
+			vertexData[startIndex].texcoord = { float(lonIndex) / float(kSubdivision),1.0f - float(latIndex) / float(kSubdivision) };
+			//b
+			vertexData[startIndex+1].position.x = std::cos(lat+kLatEvery) * std::cos(lon);
+			vertexData[startIndex+1].position.y = std::sin(lat+kLatEvery);
+			vertexData[startIndex+1].position.z = std::cos(lat+kLatEvery) * std::sin(lon);
+			vertexData[startIndex+1].position.w = 1.0f;
+			vertexData[startIndex+1].texcoord = { float(lonIndex) / float(kSubdivision),1.0f - float(latIndex+1) / float(kSubdivision) };
+			//c
+			vertexData[startIndex+2].position.x = std::cos(lat) * std::cos(lon+kLonEvery);
+			vertexData[startIndex+2].position.y = std::sin(lat);
+			vertexData[startIndex+2].position.z = std::cos(lat) * std::sin(lon+ kLonEvery);
+			vertexData[startIndex+2].position.w = 1.0f;
+			vertexData[startIndex+2].texcoord = { float(lonIndex+1) / float(kSubdivision),1.0f - float(latIndex) / float(kSubdivision) };
+		
+			
+			//c2
+			vertexData[startIndex + 3].position.x = std::cos(lat) * std::cos(lon + kLonEvery);
+			vertexData[startIndex + 3].position.y = std::sin(lat);
+			vertexData[startIndex + 3].position.z = std::cos(lat) * std::sin(lon + kLonEvery);
+			vertexData[startIndex + 3].position.w = 1.0f;
+			vertexData[startIndex + 3].texcoord = { float(lonIndex + 1) / float(kSubdivision),1.0f - float(latIndex) / float(kSubdivision) };
+			//b2
+			vertexData[startIndex + 4].position.x = std::cos(lat + kLatEvery) * std::cos(lon);
+			vertexData[startIndex + 4].position.y = std::sin(lat + kLatEvery);
+			vertexData[startIndex + 4].position.z = std::cos(lat + kLatEvery) * std::sin(lon);
+			vertexData[startIndex + 4].position.w = 1.0f;
+			vertexData[startIndex + 4].texcoord = { float(lonIndex) / float(kSubdivision),1.0f - float(latIndex + 1) / float(kSubdivision) };
+			//d
+			vertexData[startIndex + 5].position.x = std::cos(lat + kLatEvery) * std::cos(lon + kLonEvery);
+			vertexData[startIndex + 5].position.y = std::sin(lat + kLatEvery);
+			vertexData[startIndex + 5].position.z = std::cos(lat + kLatEvery) * std::sin(lon + kLonEvery);
+			vertexData[startIndex + 5].position.w = 1.0f;
+			vertexData[startIndex + 5].texcoord = { float(lonIndex + 1) / float(kSubdivision),1.0f - float(latIndex + 1) / float(kSubdivision) };
+		}
+	}
+	/*//左下
 	vertexData[0].position = { -0.5f,-0.5f,0.0f,1.0f };
 	vertexData[0].texcoord = { 0.0f,1.0f };
 	//上
@@ -860,7 +879,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	vertexData[4].texcoord = { 0.5f,0.0f };
 	//右下2
 	vertexData[5].position = { 0.5f,-0.5f,-0.5f,1.0f };
-	vertexData[5].texcoord = { 1.0f,1.0f };
+	vertexData[5].texcoord = { 1.0f,1.0f };*/
+
+	assert(SUCCEEDED(hr));
 
 	D3D12_VIEWPORT viewport{};
 	viewport.Width = kClientWidth;
@@ -878,7 +899,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
 	vertexBufferView.BufferLocation = vertexResource->GetGPUVirtualAddress();
-	vertexBufferView.SizeInBytes = sizeof(VertexData) * 6;
+	vertexBufferView.SizeInBytes = sizeof(VertexData) * ballVertex;
 	vertexBufferView.StrideInBytes = sizeof(VertexData);
 
 	ID3D12Resource* wvpResource = CreateBufferResource(device, sizeof(Matrix4x4));
@@ -886,7 +907,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	wvpResource->Map(0, nullptr, reinterpret_cast<void**>(&wvpData));
 	*wvpData = MakeIdentity4x4();
 
-	Transform transform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
+	Transform transform{ {-0.5f,-0.75f,-0.5f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
 	Transform cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,-5.0f} };
 	Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
@@ -939,12 +960,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ImGui::NewFrame();
 
 
-			Matrix4x4 worldMatrixSprite = MakeAffineMatrix(transformSprite.scale, transformSprite.rotate, transformSprite.translate);
-			Matrix4x4 viewMatrixSprite = MakeIdentity4x4();
-			Matrix4x4 projectionMatrixSprite = MakeOrthographicMatrix(0.0f, 0.0f, float(kClientWidth), float(kClientHeight), 0.0f, 100.0f);
-			Matrix4x4 worldViewProjectionMatrixSprite = Multiply(worldMatrixSprite, Multiply(viewMatrixSprite, projectionMatrixSprite));
-			*transformationMatrixDataSprite = worldViewProjectionMatrixSprite;
-
 			ImGui::ShowDemoWindow();
 
 			ImGui::Render();
@@ -983,11 +998,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
 			commandList->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
 
-			commandList->DrawInstanced(6, 1, 0, 0);
-
-			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
-			commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
-			commandList->DrawInstanced(6, 1, 0, 0);
+			commandList->DrawInstanced(ballVertex, 1, 0, 0);
 
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
 
