@@ -55,6 +55,11 @@ struct Transform {
 	Vector3 translate;
 };
 
+struct Material {
+	Vector4 color;
+	int32_t enableLigting;
+};
+
 Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float bottom, float nearClip, float farClip) {
 	assert(left != right);
 	assert(top != bottom);
@@ -828,6 +833,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		IID_PPV_ARGS(&graphicsPipelineState));
 	assert(SUCCEEDED(hr));
 	
+	ID3D12Resource* materialResourceSprite = CreateBufferResource(device, sizeof(Material));
+	Material* materialDataSprite = nullptr;
+	//色
+	*materialDataSprite = Material(1.0f, 1.0f, 1.0f, 1.0f);
+	materialDataSprite.enableLighting = false;
+
 	const uint32_t ballVertex = 16 * 16 * 6;
 
 	ID3D12Resource* vertexResource = CreateBufferResource(device,sizeof(VertexData)*ballVertex);
@@ -883,6 +894,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			vertexData[startIndex + 5].position.z = std::cos(lat + kLatEvery) * std::sin(lon + kLonEvery);
 			vertexData[startIndex + 5].position.w = 1.0f;
 			vertexData[startIndex + 5].texcoord = { float(lonIndex + 1) / float(kSubdivision),1.0f - float(latIndex + 1) / float(kSubdivision) };
+
+			vertexData[startIndex].normal.x = vertexData[startIndex].position.x;
+			vertexData[startIndex].normal.y = vertexData[startIndex].position.y;
+			vertexData[startIndex].normal.z = vertexData[startIndex].position.z;
 		}
 	}
 	/*//左下
