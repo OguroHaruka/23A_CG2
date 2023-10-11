@@ -54,6 +54,16 @@ struct Transform {
 	Vector3 translate;
 };
 
+enum BlendMode {
+	kBlendModeNone,
+	kBlendModeNormal,
+	kBlendModeAdd,
+	kBlendModeSubtract,
+	kBlendModeMultily,
+	kBlendModeScreen,
+	kCountofBlendMode,
+};
+
 Matrix4x4 MakeIdentity4x4() {
 	Matrix4x4 result;
 	result.m[0][0] = 1;
@@ -664,7 +674,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector4* materialData = nullptr;
 	materialResource->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
 	//色
-	*materialData = Vector4(1.0f,1.0f, 1.0f, 1.0f);
+	float colorRGBT[] = { 1.0f,1.0f,1.0f,1.0f };
 
 	ID3DBlob* signatureBlob = nullptr;
 	ID3DBlob* errorBlob = nullptr;
@@ -695,6 +705,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	D3D12_BLEND_DESC blendDesc{};
 	blendDesc.RenderTarget[0].RenderTargetWriteMask =
 		D3D12_COLOR_WRITE_ENABLE_ALL;
+	blendDesc.RenderTarget[0].BlendEnable = TRUE;
+	blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+	blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+	blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
+	blendDesc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
+	blendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
 
 	D3D12_RASTERIZER_DESC rasterizerDesc{};
 	rasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
@@ -823,9 +840,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
 
-			ImGui::ShowDemoWindow();
+			ImGui::Begin("Window");
+			float setColor[] = { colorRGBT[0],colorRGBT[1],colorRGBT[2] };
+			ImGui::SliderFloat3("Color", setColor, 0.0f, 1.0f);
+			colorRGBT[0] = setColor[0];
+			colorRGBT[1] = setColor[1];
+			colorRGBT[2] = setColor[2];
+
+			float setTransparency[] = { colorRGBT[3] };
+			ImGui::SliderFloat("Transparency", setTransparency, 0.0f, 1.0f);
+			colorRGBT[3] = setTransparency[0];
+
+			ImGui::End();
+
+			//ImGui::ShowDemoWindow();
 
 			ImGui::Render();
+
+			*materialData = Vector4(colorRGBT[0], colorRGBT[1], colorRGBT[2], colorRGBT[3]);
 
 			UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
 
