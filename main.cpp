@@ -55,6 +55,11 @@ struct Transform {
 	Vector3 translate;
 };
 
+struct TransformationMatrix {
+	Matrix4x4 WVP;
+	Matrix4x4 World;
+};
+
 Matrix4x4 MakeIdentity4x4() {
 	Matrix4x4 result;
 	result.m[0][0] = 1;
