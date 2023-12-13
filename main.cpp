@@ -884,6 +884,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			ImGui::Render();
 
+			for (uint32_t index = 0; index < kNumInstance; ++index) {
+				Matrix4x4 worldMatrix = MakeAffineMatrix(transforms[index].scale, transforms[index].rotate, transforms[index].translate);
+				Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));
+				instancingData[index].WVP = worldViewProjectionMatrix;
+				instancingData[index].World = worldMatrix;
+			}
+
 			UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
 
 			D3D12_RESOURCE_BARRIER barrier{};
