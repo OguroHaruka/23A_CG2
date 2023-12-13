@@ -917,7 +917,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
 			commandList->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
 			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
-			commandList->DrawInstanced(3, kNumInstance, 0, 0);
+			commandList->DrawInstanced(6, kNumInstance, 0, 0);
 
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
 
