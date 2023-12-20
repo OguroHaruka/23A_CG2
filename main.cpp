@@ -57,7 +57,7 @@ struct Transform {
 
 struct TransformationMatrix {
 	Matrix4x4 WVP;
-	Matrix4x4 World;
+	//Matrix4x4 World;
 };
 
 Matrix4x4 MakeIdentity4x4() {
@@ -838,7 +838,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	instancingResource->Map(0, nullptr, reinterpret_cast<void**>(&instancingData));
 	for (uint32_t index = 0; index < kNumInstance; ++index) {
 		instancingData[index].WVP = MakeIdentity4x4();
-		instancingData[index].World = MakeIdentity4x4();
+		//instancingData[index].World = MakeIdentity4x4();
 	}
 
 	const uint32_t descriptorSizeSRV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -887,7 +887,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				Matrix4x4 worldMatrix = MakeAffineMatrix(transforms[index].scale, transforms[index].rotate, transforms[index].translate);
 				Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));
 				instancingData[index].WVP = worldViewProjectionMatrix;
-				instancingData[index].World = worldMatrix;
+				//instancingData[index].World = worldMatrix;
 			}
 
 			UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
@@ -915,6 +915,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			commandList->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
 			commandList->SetGraphicsRootDescriptorTable(1, instancingSrvHandleGPU);
+			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
 			commandList->DrawInstanced(3, kNumInstance, 0, 0);
 
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
