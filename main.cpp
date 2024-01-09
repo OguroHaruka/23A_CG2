@@ -489,7 +489,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	HWND hwnd = CreateWindow(
 		wc.lpszClassName,
-		L"CG2",
+		L"LE2C_05_オグロ_ハルカ",
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
